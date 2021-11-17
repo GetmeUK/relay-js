@@ -1,4 +1,3 @@
-# Relay JS
 
 A JS client for the relay service which relays server-side messages to client-side subscribers (e.g. browser) via websockets.
 
