@@ -23,8 +23,7 @@ const client = RelayClient(
 client.auth(
     'burt',
     'your_user_session',
-    'channels': ['global', ...]
+    ['global', ...]
 )
-
 
 ```

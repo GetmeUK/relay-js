@@ -10,7 +10,6 @@ export class RelayClient {
         this._options = {
             'apiEndpoint': 'wss://api.relay.ninja',
             'apiKey': '',
-            'autoReconnect': true,
             'onError': (error) => {
                 console.error(error)
             },
@@ -26,11 +25,22 @@ export class RelayClient {
 
         // The websocket the client is connected to the API via
         this._socket = null
+
+        // The amount of seconds to delay before trying to reconnect
+        this._retryDelay = 0
+
+        // Flag indicating we should unsubscribe (not attempt to reconnect) on
+        // the next close event.
+        this._unsubscribe = false
     }
+
+    // -- Getters / Setters --
 
     get connected() {
         return this._socket !== null
     }
+
+    // -- Public methods --
 
     /**
      * Authorize a subscription for the given user and channels.
@@ -51,8 +61,8 @@ export class RelayClient {
                 {
                     'api_key': this._options.apiKey,
                     channels,
-                    userId,
-                    userToken
+                    'user_id': userId,
+                    'user_token': userToken
                 }
             ]))
 
@@ -60,6 +70,24 @@ export class RelayClient {
             this._connect()
         }
     }
+
+    /**
+     * Unsubscribe from the subcription.
+     */
+    unsubscribe() {
+        if (this.connected) {
+            this._unsubscribe = true
+            this._socket.addEventListener(
+                'close',
+                () => {
+                    this._unsubscribe = false
+                }
+            )
+            this._socket.close()
+        }
+    }
+
+    // -- Private meothds --
 
     /**
      * Establish a websocket connection to the Relay API.
@@ -70,6 +98,8 @@ export class RelayClient {
         this._socket.addEventListener(
             'open',
             () => {
+                this._retryDelay = 0
+
                 const {userId, userToken, channels} = this._authArgs
                 this.auth(userId, userToken, channels)
             }
@@ -79,10 +109,25 @@ export class RelayClient {
             'close',
             (event) => {
                 this._socket = null
-                console.log(event)
-                // if (this._options.autoReconnect) {
-                //     this._connect()
-                // }
+
+                if (this._unsubscribe) {
+                    return
+                }
+
+                if (event.wasClean) {
+                    this._connect()
+                } else {
+                    this._retryDelay = Math.min(
+                        Math.max(this._retryDelay * 2, 1),
+                        64
+                    )
+                    setTimeout(
+                        () => {
+                            this._connect()
+                        },
+                        this._retryDelay * 1000
+                    )
+                }
             }
         )
 
