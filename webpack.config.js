@@ -9,7 +9,7 @@ module.exports = {
     externals: {},
 
     output: {
-        library: 'relay-js',
+        library: 'relay-ninja',
         libraryTarget: 'umd',
         path: path.resolve(__dirname, 'umd'),
         filename: '[name].js'
