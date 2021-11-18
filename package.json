@@ -1,5 +1,5 @@
 {
-  "name": "relay-js",
+  "name": "relay-ninja",
   "version": "1.0.0",
   "description": "A JS client for the relay service which relays server-side messages to client-side subscribers (e.g. browser) via websockets.",
   "engines": {

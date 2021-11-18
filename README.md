@@ -9,7 +9,7 @@ A JS client for the relay service which relays server-side messages to client-si
 ## Usage
 
 ```JavaScript
-import {RelayClient} as $ from 'relay-js'
+import {RelayClient} as $ from 'relay-ninja'
 
 const client = RelayClient(
     'your_api_key...',
